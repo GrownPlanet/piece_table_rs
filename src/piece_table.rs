@@ -1,3 +1,5 @@
+use std::cmp::Ordering;
+
 // is it from the add buffer or the original buffer
 #[derive(Debug, Clone, Copy)]
 enum Which {
@@ -131,13 +133,17 @@ impl PieceTable {
         let i = self.split_at(to)? - 1;
         let l = to - from;
 
-        if self.table[i].length > l {
-            self.table[i].length -= l;
-        } else if self.table[i].length == l {
-            self.table.remove(i);
-        } else {
-            self.table.remove(i);
-            self.delete_range(from, to - self.table[i].length)?;
+        match self.table[i].length.cmp(&l) {
+            Ordering::Less => {
+                self.table[i].length -= l;
+            },
+            Ordering::Equal => {
+                self.table.remove(i);
+            }
+            Ordering::Greater => {
+                self.table.remove(i);
+                self.delete_range(from, to - self.table[i].length)?;
+            }
         }
 
         Ok(())
