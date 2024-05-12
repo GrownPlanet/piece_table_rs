@@ -3,6 +3,7 @@ use piece_table::PieceTable;
 mod piece_table;
 
 fn main() -> Result<(), String> {
+    /*
     let original = String::from("I am a piece table!");
 
     let mut piece_table = PieceTable::new(original);
@@ -25,6 +26,19 @@ fn main() -> Result<(), String> {
 
     // get the length of the piece table
     println!("{}", piece_table.len());
+    */
+
+    let original = String::from(
+        "I am a piece table!\nThis is line 2\nthe third line :D\nfour lines will be enough",
+    );
+
+    let piece_table = PieceTable::new(original);
+
+    let strings = piece_table.gen_string(1, 3);
+
+    for string in strings {
+        println!("{}", string);
+    }
 
     Ok(())
 }
