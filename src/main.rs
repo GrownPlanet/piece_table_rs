@@ -37,7 +37,7 @@ fn main() -> Result<(), String> {
     let strings = piece_table.gen_string(1, 3);
 
     for string in strings {
-        println!("{}", string);
+        println!("piece: \"{}\"", string);
     }
 
     Ok(())

@@ -39,16 +39,15 @@ impl PieceTable {
         }
     }
 
-    pub fn gen_string(&self, from: usize, to: usize) -> Vec<String> {
-        let mut strings: Vec<String> = vec![String::new()];
+    pub fn gen_string(&self, from: usize, to: usize) -> Vec<&str> {
+        let mut strings: Vec<&str> = vec![];
 
         let mut passed_newlines = 0;
 
         for piece in self.pieces.iter() {
             /*
             * step:
-            * - iterate over the newlines and add them
-            * - redefine start to the start plus the length until the right index
+            * redefine start to the start plus the length until the right index
             */
 
             let new_newlines = passed_newlines + piece.newlines.len();
@@ -60,34 +59,17 @@ impl PieceTable {
             }
 
             let start = if passed_newlines < from && from < new_newlines {
-                from - passed_newlines
+                todo!()
             } else {
-                0
+                piece.start
             };
-
-            let end = piece.newlines.len();
 
             match piece.piece_type {
                 PieceType::Added => {
-                    let i = strings.len() - 1;
-                    let mut to_push = &self.added[piece.start..piece.newlines[start]];
-                    strings[i].push_str(to_push);
-
-                    for s in (start + 1)..end {
-                        to_push = &self.added[(piece.newlines[s - 1] + 1)..piece.newlines[s]];
-                        strings.push(to_push.to_string());
-                    }
+                    strings.push(&self.added[start..(piece.start + piece.length)])
                 }
                 PieceType::Original => {
-                    let i = strings.len() - 1;
-                    let mut to_push = &self.original[piece.start..piece.newlines[start]];
-
-                    strings[i].push_str(to_push);
-
-                    for i in (start + 1)..end {
-                        to_push = &self.original[(piece.newlines[i - 1] + 1)..piece.newlines[i]];
-                        strings.push(to_push.to_string());
-                    }
+                    strings.push(&self.original[start..(piece.start + piece.length)])
                 }
             }
 
