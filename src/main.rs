@@ -29,15 +29,15 @@ fn main() -> Result<(), String> {
     */
 
     let original = String::from(
-        "I am a piece table!\nThis is line 2\nthe third line :D\nfour lines will be enough",
+        "I am a piece table!\nThis is line 2\nthe third line :D\nline numero four\nfive lines will be enough\n",
     );
 
     let piece_table = PieceTable::new(original);
 
-    let strings = piece_table.gen_string(1, 3);
+    let strings = piece_table.gen_string(1, 5);
 
-    for string in strings {
-        println!("piece: \"{}\"", string);
+    for (i, string) in strings.iter().enumerate() {
+        println!("piece {}: {:?}", i + 1, string);
     }
 
     Ok(())

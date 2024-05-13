@@ -29,7 +29,13 @@ pub struct PieceTable {
 
 impl PieceTable {
     pub fn new(string: String) -> Self {
-        let newlines = newline_positions(&string);
+        let mut newlines = newline_positions(&string);
+
+        // the last line won't be returned if there isn't a newline at the end
+        if string.as_bytes()[string.len() - 1] as char != '\n' {
+            newlines.push(string.len() - 1);
+        }
+
         let piece = Piece::new(PieceType::Original, 0, string.len(), newlines);
 
         Self {
@@ -39,18 +45,18 @@ impl PieceTable {
         }
     }
 
+    // TODO: add some more error handling
     pub fn gen_string(&self, from: usize, to: usize) -> Vec<String> {
+        if from > to {
+            println!("`from` (= {}) is greater than `to` (= {})", from, to);
+            std::process::exit(1);
+        }
+
         let mut strings: Vec<String> = vec![String::new()];
 
         let mut passed_newlines = 0;
 
         for piece in self.pieces.iter() {
-            /*
-            * step:
-            * - iterate over the newlines and add them
-            * - redefine start to the start plus the length until the right index
-            */
-
             let new_newlines = passed_newlines + piece.newlines.len();
 
             if new_newlines < from {
@@ -65,20 +71,28 @@ impl PieceTable {
                 0
             };
 
-            let end = piece.newlines.len();
+            let end = if passed_newlines < to && to < new_newlines {
+                to - passed_newlines
+            } else {
+                piece.newlines.len()
+            };
 
             let buf = match piece.piece_type {
                 PieceType::Added => &self.added,
-                PieceType::Original => &self.original
+                PieceType::Original => &self.original,
             };
 
             let i = strings.len() - 1;
-            let mut to_push = &buf[piece.start..piece.newlines[start]];
+
+            let mut to_push = match start {
+                0 => &buf[piece.start..piece.newlines[start]],
+                _ => &buf[(piece.newlines[start - 1] + 1)..=piece.newlines[start]],
+            };
 
             strings[i].push_str(to_push);
 
             for i in (start + 1)..end {
-                to_push = &buf[(piece.newlines[i - 1] + 1)..piece.newlines[i]];
+                to_push = &buf[(piece.newlines[i - 1] + 1)..=piece.newlines[i]];
                 strings.push(to_push.to_string());
             }
 
