@@ -67,28 +67,19 @@ impl PieceTable {
 
             let end = piece.newlines.len();
 
-            match piece.piece_type {
-                PieceType::Added => {
-                    let i = strings.len() - 1;
-                    let mut to_push = &self.added[piece.start..piece.newlines[start]];
-                    strings[i].push_str(to_push);
+            let buf = match piece.piece_type {
+                PieceType::Added => &self.added,
+                PieceType::Original => &self.original
+            };
 
-                    for s in (start + 1)..end {
-                        to_push = &self.added[(piece.newlines[s - 1] + 1)..piece.newlines[s]];
-                        strings.push(to_push.to_string());
-                    }
-                }
-                PieceType::Original => {
-                    let i = strings.len() - 1;
-                    let mut to_push = &self.original[piece.start..piece.newlines[start]];
+            let i = strings.len() - 1;
+            let mut to_push = &buf[piece.start..piece.newlines[start]];
 
-                    strings[i].push_str(to_push);
+            strings[i].push_str(to_push);
 
-                    for i in (start + 1)..end {
-                        to_push = &self.original[(piece.newlines[i - 1] + 1)..piece.newlines[i]];
-                        strings.push(to_push.to_string());
-                    }
-                }
+            for i in (start + 1)..end {
+                to_push = &buf[(piece.newlines[i - 1] + 1)..piece.newlines[i]];
+                strings.push(to_push.to_string());
             }
 
             passed_newlines = new_newlines;
