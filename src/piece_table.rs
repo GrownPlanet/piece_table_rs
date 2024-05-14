@@ -1,4 +1,4 @@
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 enum PieceType {
     Added,
     Original,
@@ -46,7 +46,7 @@ impl PieceTable {
         }
     }
 
-    // TODO: 
+    // TODO:
     // - add some more error handling
     // - error handling when to or from is too big
     pub fn gen_string(&self, from: usize, to: usize) -> Vec<String> {
@@ -54,6 +54,8 @@ impl PieceTable {
             println!("`from` (= {}) is greater than `to` (= {})", from, to);
             std::process::exit(1);
         }
+
+        self._print_table();
 
         let mut strings: Vec<String> = vec![String::new()];
 
@@ -88,7 +90,10 @@ impl PieceTable {
             let i = strings.len() - 1;
 
             let mut to_push = match start {
-                0 => &buf[piece.start..piece.newlines[start]],
+                0 => {
+                    &buf[piece.start
+                        ..maybe_get(&piece.newlines, start).unwrap_or(piece.start + piece.length)]
+                }
                 _ => &buf[(piece.newlines[start - 1] + 1)..=piece.newlines[start]],
             };
 
@@ -102,7 +107,7 @@ impl PieceTable {
             passed_newlines = new_newlines;
         }
 
-        return strings;
+        strings
     }
 
     fn split_at(&mut self, at: usize) -> Result<usize, String> {
@@ -119,9 +124,10 @@ impl PieceTable {
                 let p1_newlines = count_newlines(&buf[piece.start..(piece.start + p1_len)]);
                 let p1 = Piece::new(piece.piece_type, piece.start, p1_len, p1_newlines);
 
-                let p2_len = (passed_size + piece.length) - at;
-                let p2_newlines = count_newlines(&buf[p1_len..(piece.start + p2_len)]);
-                let p2 = Piece::new(piece.piece_type, piece.start, p2_len, p2_newlines);
+                let p2_len = passed_size + piece.length - at;
+                let p2_newlines =
+                    count_newlines(&buf[(piece.start + p1_len)..(piece.start + p1_len + p2_len)]);
+                let p2 = Piece::new(piece.piece_type, piece.start + p1_len, p2_len, p2_newlines);
 
                 self.pieces[i] = p1;
                 self.pieces.insert(i + 1, p2);
@@ -148,10 +154,32 @@ impl PieceTable {
 
         self.pieces.insert(
             i,
-            Piece::new(PieceType::Added, start_index, self.added.len() - start_index, newlines),
+            Piece::new(
+                PieceType::Added,
+                start_index,
+                self.added.len() - start_index,
+                newlines,
+            ),
         );
 
         Ok(())
+    }
+
+    pub fn _print_table(&self) {
+        println!("orignal buffer : {:?}", self.original);
+        println!("added buffer   : {:?}", self.added);
+
+        println!();
+
+        println!("which - start_index - lenght - newlines");
+        println!("---------------------------------------");
+        for piece in self.pieces.iter() {
+            println!(
+                "{:?} - {} - {} - {:?}",
+                piece.piece_type, piece.start, piece.length, piece.newlines,
+            );
+        }
+        println!("---------------------------------------");
     }
 }
 
@@ -162,4 +190,11 @@ fn count_newlines(string: &str) -> Vec<usize> {
         .filter(|(_, c)| *c == '\n')
         .map(|(i, _)| i)
         .collect()
+}
+
+fn maybe_get<T: Copy>(arr: &[T], i: usize) -> Option<T> {
+    if i >= arr.len() {
+        return None;
+    }
+    Some(arr[i])
 }
