@@ -32,9 +32,11 @@ fn main() -> Result<(), String> {
         "I am a piece table!\nThis is line 2\nthe third line :D\nline numero four\nfive lines will be enough\n",
     );
 
-    let piece_table = PieceTable::new(original);
+    let mut piece_table = PieceTable::new(original);
 
-    let strings = piece_table.gen_string(1, 5);
+    piece_table.insert(1, "now all the other indexes are off >:)\n")?;
+
+    let strings = piece_table.gen_string(0, 4);
 
     for (i, string) in strings.iter().enumerate() {
         println!("piece {}: {:?}", i + 1, string);

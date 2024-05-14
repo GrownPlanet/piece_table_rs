@@ -1,3 +1,4 @@
+#[derive(Copy, Clone)]
 enum PieceType {
     Added,
     Original,
@@ -29,7 +30,7 @@ pub struct PieceTable {
 
 impl PieceTable {
     pub fn new(string: String) -> Self {
-        let mut newlines = newline_positions(&string);
+        let mut newlines = count_newlines(&string);
 
         // the last line won't be returned if there isn't a newline at the end
         if string.as_bytes()[string.len() - 1] as char != '\n' {
@@ -45,7 +46,9 @@ impl PieceTable {
         }
     }
 
-    // TODO: add some more error handling
+    // TODO: 
+    // - add some more error handling
+    // - error handling when to or from is too big
     pub fn gen_string(&self, from: usize, to: usize) -> Vec<String> {
         if from > to {
             println!("`from` (= {}) is greater than `to` (= {})", from, to);
@@ -101,9 +104,58 @@ impl PieceTable {
 
         return strings;
     }
+
+    fn split_at(&mut self, at: usize) -> Result<usize, String> {
+        let mut passed_size = 0;
+
+        for (i, piece) in self.pieces.iter().enumerate() {
+            if passed_size < at && at < passed_size + piece.length {
+                let buf = match piece.piece_type {
+                    PieceType::Added => &self.added,
+                    PieceType::Original => &self.original,
+                };
+
+                let p1_len = at - passed_size;
+                let p1_newlines = count_newlines(&buf[piece.start..(piece.start + p1_len)]);
+                let p1 = Piece::new(piece.piece_type, piece.start, p1_len, p1_newlines);
+
+                let p2_len = (passed_size + piece.length) - at;
+                let p2_newlines = count_newlines(&buf[p1_len..(piece.start + p2_len)]);
+                let p2 = Piece::new(piece.piece_type, piece.start, p2_len, p2_newlines);
+
+                self.pieces[i] = p1;
+                self.pieces.insert(i + 1, p2);
+
+                return Ok(i + 1);
+            } else if at == passed_size {
+                return Ok(i);
+            } else if at == passed_size + piece.length {
+                return Ok(i + 1);
+            }
+            passed_size += piece.length;
+        }
+
+        Err(String::from("`split_at` failed!"))
+    }
+
+    pub fn insert(&mut self, at: usize, string: &str) -> Result<(), String> {
+        let start_index = self.added.len();
+        let newlines = count_newlines(string);
+
+        self.added.push_str(string);
+
+        let i = self.split_at(at)?;
+
+        self.pieces.insert(
+            i,
+            Piece::new(PieceType::Added, start_index, self.added.len() - start_index, newlines),
+        );
+
+        Ok(())
+    }
 }
 
-fn newline_positions(string: &str) -> Vec<usize> {
+fn count_newlines(string: &str) -> Vec<usize> {
     string
         .chars()
         .enumerate()
