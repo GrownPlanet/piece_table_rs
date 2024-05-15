@@ -39,6 +39,7 @@ fn main() -> Result<(), String> {
     println!("\n{}\n", "=".repeat(100));
 
     piece_table.insert(5, "now all the other indexes are off >:)\n")?;
+    piece_table.insert(70, "hahahahahahah")?;
 
     let strings = piece_table.gen_string(0, 90);
 
