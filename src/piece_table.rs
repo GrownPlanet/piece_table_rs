@@ -92,19 +92,27 @@ impl PieceTable {
             let mut to_push = match start {
                 0 => {
                     &buf[piece.start
-                        ..maybe_get(&piece.newlines, start).unwrap_or(piece.start + piece.length)]
+                        ..=(piece.start + maybe_get(&piece.newlines, start).unwrap_or(piece.start + piece.length - 1))]
                 }
-                _ => &buf[(piece.newlines[start - 1] + 1)..=piece.newlines[start]],
+                _ => &buf[(piece.newlines[start - 1] + 1)..=(piece.start + piece.newlines[start])],
             };
+            println!("{}..={}: {:?}", piece.start, maybe_get(&piece.newlines, start).unwrap_or(piece.start + piece.length) + piece.start, to_push);
 
             strings[i].push_str(to_push);
 
             for i in (start + 1)..end {
-                to_push = &buf[(piece.newlines[i - 1] + 1)..=piece.newlines[i]];
+                to_push = &buf[(piece.start + piece.newlines[i - 1] + 1)..=(piece.start + piece.newlines[i])];
                 strings.push(to_push.to_string());
+            }
+            if to_push.ends_with('\n') {
+                strings.push(String::new());
             }
 
             passed_newlines = new_newlines;
+        }
+
+        if strings.last().is_some_and(|s| s.is_empty()) {
+            let _ = strings.pop();
         }
 
         strings

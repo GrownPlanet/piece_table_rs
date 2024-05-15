@@ -29,7 +29,7 @@ fn main() -> Result<(), String> {
     */
 
     let original = String::from(
-        "I am a piece table!\nThis is line 2\nthe third line :D\nline numero four\nfive lines will be enough\n",
+        "I am a piece table!\nThis is line 2\nThe third line :D\nLine numero four\nFive lines will be enough\n",
     );
 
     let mut piece_table = PieceTable::new(original);
