@@ -34,16 +34,11 @@ fn main() -> Result<(), String> {
 
     let mut piece_table = PieceTable::new(original);
 
-    piece_table._print_table();
+    piece_table.insert(0, "now all the other indexes are off >:)\n")?;
+    piece_table.insert(70, "<<somewhere in the middle>>")?;
+    piece_table.insert(piece_table.len() - 1, "<<I am a piece of text>>")?;
 
-    println!("\n{}\n", "=".repeat(100));
-
-    piece_table.insert(5, "now all the other indexes are off >:)\n")?;
-    piece_table.insert(70, "hahahahahahah")?;
-
-    let strings = piece_table.gen_string(0, 90);
-
-    println!("\n{}\n", "=".repeat(100));
+    let strings = piece_table.gen_string(0, 6);
 
     for (i, string) in strings.iter().enumerate() {
         println!("piece {}: {:?}", i + 1, string);

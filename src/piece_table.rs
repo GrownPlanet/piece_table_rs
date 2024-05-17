@@ -92,20 +92,24 @@ impl PieceTable {
             let mut to_push = match start {
                 0 => {
                     &buf[piece.start
-                        ..=(piece.start + maybe_get(&piece.newlines, start).unwrap_or(piece.length - 1))]
+                        ..(piece.start + maybe_get(&piece.newlines, start).unwrap_or(piece.length))]
                 }
-                _ => &buf[(piece.newlines[start - 1] + 1)..=(piece.start + piece.newlines[start])],
+                _ => &buf[piece.newlines[start - 1]..(piece.start + piece.newlines[start])],
             };
 
             strings[i].push_str(to_push);
 
             for i in (start + 1)..end {
-                to_push = &buf[(piece.start + piece.newlines[i - 1] + 1)..=(piece.start + piece.newlines[i])];
+                to_push =
+                    &buf[piece.start + piece.newlines[i - 1]..(piece.start + piece.newlines[i])];
                 strings.push(to_push.to_string());
             }
 
-            if !piece.newlines.is_empty() && piece.newlines[piece.newlines.len() - 1] + 1 != piece.length {
-                to_push = &buf[(piece.start + piece.newlines[piece.newlines.len() - 1] + 1)..=(piece.start + piece.length)];
+            if !piece.newlines.is_empty()
+                && piece.newlines[piece.newlines.len() - 1] != piece.length
+            {
+                to_push = &buf[(piece.start + piece.newlines[piece.newlines.len() - 1])
+                    ..(piece.start + piece.length)];
                 strings.push(to_push.to_string());
             }
 
@@ -154,7 +158,18 @@ impl PieceTable {
             passed_size += piece.length;
         }
 
+        println!("SPLIT AT: at = {}", at);
+        self._print_table();
+
         Err(String::from("`split_at` failed!"))
+    }
+
+    pub fn len(&self) -> usize {
+        let mut len = 0;
+        for p in &self.pieces {
+            len += p.length
+        }
+        len
     }
 
     pub fn insert(&mut self, at: usize, string: &str) -> Result<(), String> {
@@ -201,7 +216,7 @@ fn count_newlines(string: &str) -> Vec<usize> {
         .chars()
         .enumerate()
         .filter(|(_, c)| *c == '\n')
-        .map(|(i, _)| i)
+        .map(|(i, _)| i + 1)
         .collect()
 }
 
