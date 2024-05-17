@@ -64,11 +64,16 @@ impl PieceTable {
         for piece in self.pieces.iter() {
             let new_newlines = passed_newlines + piece.newlines.len();
 
-            if new_newlines < from {
+            // RETURNS TOO EARLY!!!!!
+            /*
+            if new_newlines <= from {
+                passed_newlines = new_newlines;
                 continue;
-            } else if passed_newlines >= to {
+            }
+            if passed_newlines >= to {
                 return strings;
             }
+            */
 
             let start = if passed_newlines < from && from < new_newlines {
                 from - passed_newlines
@@ -124,7 +129,8 @@ impl PieceTable {
             let _ = strings.pop();
         }
 
-        strings
+        // fuck this shit
+        strings[from..to].to_owned()
     }
 
     fn split_at(&mut self, at: usize) -> Result<usize, String> {
