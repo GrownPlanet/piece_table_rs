@@ -35,13 +35,13 @@ fn main() -> Result<(), String> {
     let mut piece_table = PieceTable::new(original);
 
     piece_table.insert(0, "now all the other indexes are off >:), or not?\n")?;
-    piece_table.insert(70, "<<somewhere in the middle>>")?;
-    piece_table.insert(piece_table.len() - 1, "<<I am a piece of text>>")?;
+    piece_table.insert(72, "<<somewhere in the middle>> ")?;
+    piece_table.insert(piece_table.len() - 1, " <<The end>>")?;
 
     let strings = piece_table.gen_string(0, 6);
 
-    for (i, string) in strings.iter().enumerate() {
-        println!("piece {}: {:?}", i, string);
+    for string in strings.iter() {
+        print!("{}", string);
     }
 
     Ok(())

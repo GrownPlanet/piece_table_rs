@@ -55,8 +55,6 @@ impl PieceTable {
             std::process::exit(1);
         }
 
-        self._print_table();
-
         let mut strings: Vec<String> = vec![String::new()];
 
         let mut passed_newlines = 0;
@@ -123,10 +121,6 @@ impl PieceTable {
             }
 
             passed_newlines = new_newlines;
-        }
-
-        if strings.last().is_some_and(|s| s.is_empty()) {
-            let _ = strings.pop();
         }
 
         // fuck this shit
@@ -199,7 +193,11 @@ impl PieceTable {
         Ok(())
     }
 
-    pub fn _print_table(&self) {
+    pub fn delete(&self) -> Result<(), String> {
+        Ok(())
+    }
+
+    fn _print_table(&self) {
         println!("orignal buffer : {:?}", self.original);
         println!("added buffer   : {:?}", self.added);
 
