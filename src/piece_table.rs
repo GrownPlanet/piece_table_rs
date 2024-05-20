@@ -1,3 +1,5 @@
+use std::cmp::Ordering;
+
 #[derive(Copy, Clone, Debug)]
 enum PieceType {
     Added,
@@ -49,10 +51,12 @@ impl PieceTable {
     // TODO:
     // - add some more error handling
     // - error handling when to or from is too big
-    pub fn gen_string(&self, from: usize, to: usize) -> Vec<String> {
+    pub fn gen_string(&self, from: usize, to: usize) -> Result<Vec<String>, String> {
         if from > to {
-            println!("`from` (= {}) is greater than `to` (= {})", from, to);
-            std::process::exit(1);
+            return Err(format![
+                "from (= {}) cannot be bigger than to (= {})",
+                from, to
+            ]);
         }
 
         let mut strings: Vec<String> = vec![String::new()];
@@ -124,24 +128,24 @@ impl PieceTable {
         }
 
         // fuck this shit
-        strings[from..to].to_owned()
+        Ok(strings[from..to].to_owned())
     }
 
-    fn split_at(&mut self, at: usize) -> Result<usize, String> {
+    fn split_at(&mut self, index: usize) -> Result<usize, String> {
         let mut passed_size = 0;
 
         for (i, piece) in self.pieces.iter().enumerate() {
-            if passed_size < at && at < passed_size + piece.length {
+            if passed_size < index && index < passed_size + piece.length {
                 let buf = match piece.piece_type {
                     PieceType::Added => &self.added,
                     PieceType::Original => &self.original,
                 };
 
-                let p1_len = at - passed_size;
+                let p1_len = index - passed_size;
                 let p1_newlines = count_newlines(&buf[piece.start..(piece.start + p1_len)]);
                 let p1 = Piece::new(piece.piece_type, piece.start, p1_len, p1_newlines);
 
-                let p2_len = passed_size + piece.length - at;
+                let p2_len = passed_size + piece.length - index;
                 let p2_newlines =
                     count_newlines(&buf[(piece.start + p1_len)..(piece.start + p1_len + p2_len)]);
                 let p2 = Piece::new(piece.piece_type, piece.start + p1_len, p2_len, p2_newlines);
@@ -150,15 +154,15 @@ impl PieceTable {
                 self.pieces.insert(i + 1, p2);
 
                 return Ok(i + 1);
-            } else if at == passed_size {
+            } else if index == passed_size {
                 return Ok(i);
-            } else if at == passed_size + piece.length {
+            } else if index == passed_size + piece.length {
                 return Ok(i + 1);
             }
             passed_size += piece.length;
         }
 
-        println!("SPLIT AT: at = {}", at);
+        println!("SPLIT AT: index = {}", index);
         self._print_table();
 
         Err(String::from("`split_at` failed!"))
@@ -172,13 +176,13 @@ impl PieceTable {
         len
     }
 
-    pub fn insert(&mut self, at: usize, string: &str) -> Result<(), String> {
+    pub fn insert(&mut self, index: usize, string: &str) -> Result<(), String> {
         let start_index = self.added.len();
         let newlines = count_newlines(string);
 
         self.added.push_str(string);
 
-        let i = self.split_at(at)?;
+        let i = self.split_at(index)?;
 
         self.pieces.insert(
             i,
@@ -193,7 +197,51 @@ impl PieceTable {
         Ok(())
     }
 
-    pub fn delete(&self) -> Result<(), String> {
+    pub fn delete(&mut self, index: usize) -> Result<(), String> {
+        let i = self.split_at(index)?;
+
+        let piece = &mut self.pieces[i];
+
+        piece.length -= 1;
+        piece.start += 1;
+
+        // could be done smarter?
+        let s = match piece.piece_type {
+            PieceType::Added => &self.added[piece.start..(piece.start + piece.length)],
+            PieceType::Original => &self.original[piece.start..(piece.start + piece.length)],
+        };
+
+        let newlines = count_newlines(s);
+
+        piece.newlines = newlines;
+
+        Ok(())
+    }
+
+    pub fn delete_range(&mut self, from: usize, to: usize) -> Result<(), String> {
+        if from > to {
+            return Err(format![
+                "from (= {}) cannot be bigger than to (= {})",
+                from, to
+            ]);
+        }
+
+        let i = self.split_at(to)? - 1;
+        let leng = to - from;
+
+        match self.pieces[i].length.cmp(&leng) {
+            Ordering::Greater => { 
+                self.pieces[i].length -= leng;
+            },
+            Ordering::Equal => {
+                self.pieces.remove(i);
+            }
+            Ordering::Less => {
+                self.pieces.remove(i);
+                self.delete_range(from, to - self.pieces[i].length)?;
+            }
+        }
+
         Ok(())
     }
 
