@@ -54,7 +54,7 @@ impl PieceTable {
     pub fn gen_string(&self, from: usize, to: usize) -> Result<Vec<String>, String> {
         if from > to {
             return Err(format![
-                "from (= {}) cannot be bigger than to (= {})",
+                "gen_string: from (= {}) cannot be bigger than to (= {})",
                 from, to
             ]);
         }
@@ -221,12 +221,15 @@ impl PieceTable {
     pub fn delete_range(&mut self, from: usize, to: usize) -> Result<(), String> {
         if from > to {
             return Err(format![
-                "from (= {}) cannot be bigger than to (= {})",
+                "delete_range: from (= {}) cannot be bigger than to (= {})",
                 from, to
             ]);
         }
 
         let i = self.split_at(to)? - 1;
+
+        self._print_table();
+
         let leng = to - from;
 
         match self.pieces[i].length.cmp(&leng) {
@@ -237,8 +240,11 @@ impl PieceTable {
                 self.pieces.remove(i);
             }
             Ordering::Less => {
-                self.pieces.remove(i);
-                self.delete_range(from, to - self.pieces[i].length)?;
+                self.pieces.remove(i - 1);
+
+                let len_before = (0..i).fold(0, |acc, x| acc + self.pieces[x].length);
+                
+                self.delete_range(from, to - len_before)?;
             }
         }
 

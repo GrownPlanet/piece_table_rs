@@ -34,16 +34,17 @@ fn main() -> Result<(), String> {
 
     let mut piece_table = PieceTable::new(original);
 
-    piece_table.insert(0, "now all the other indexes are off >:), or not?\n")?;
-    piece_table.insert(72, "<<is somewhere in the middle and>> ")?;
+    piece_table.insert(0, "now all the other indexes are off >:), or not?")?;
+    piece_table.insert(72, "<<is somewhere in the middle and>>")?;
     piece_table.insert(piece_table.len() - 1, " <<The end>>x")?;
     piece_table.insert(69, "<<I will be deleted later>>")?;
-    
+
+
     piece_table.delete(0)?;
     piece_table.delete(65)?;
     piece_table.delete(piece_table.len() - 2)?;
 
-    piece_table.delete_range(67, 94)?;
+    piece_table.delete_range(67, 67 + 27)?;
 
     let strings = piece_table.gen_string(0, 6)?;
 
